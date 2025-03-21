@@ -1,11 +1,39 @@
 import { Link } from 'react-router-dom'
-
+import Popover from '../Popover'
+import { useMutation } from '@tanstack/react-query'
+import { logoutAccount } from 'src/apis/auth.api'
+import { useContext } from 'react'
+import { AppContext } from 'src/contexts/app.context'
+import path from 'src/constants/path'
 export default function Header() {
+  const { setIsAuthenticated, isAuthenticated, profile, setProfile } = useContext(AppContext)
+  const logoutMutate = useMutation({
+    mutationFn: () => logoutAccount(),
+    onSuccess: () => {
+      setIsAuthenticated(false)
+      setProfile(null)
+    }
+  })
+
+  const submitLogout = () => {
+    logoutMutate.mutate()
+  }
+
   return (
     <div className='bg-[linear-gradient(-180deg,#f53d2d,#f63)] pb-5 pt-2 text-white'>
       <div className='container'>
         <div className='flex justify-end'>
-          <div className='flex items-center py-1 hover:text-gray-300 cursor-pointer'>
+          <Popover
+            className='flex items-center py-1 hover:text-white/70 cursor-pointer'
+            renderPopover={
+              <div className='shawdow-md border-gray-200 relative bg-white text-black border rounded-sm'>
+                <div className='flex flex-col px-3 py-1 '>
+                  <button className='py-2 px-3 hover:text-orange'>Tieng Viet</button>
+                  <button className='py-2 px-3 hover:text-orange'>English</button>
+                </div>
+              </div>
+            }
+          >
             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='size-5'>
               <path d='M15.75 8.25a.75.75 0 0 1 .75.75c0 1.12-.492 2.126-1.27 2.812a.75.75 0 1 1-.992-1.124A2.243 2.243 0 0 0 15 9a.75.75 0 0 1 .75-.75Z' />
               <path
@@ -22,17 +50,45 @@ export default function Header() {
                 clipRule='evenodd'
               />
             </svg>
-          </div>
-          <div className='flex items-center py-1 hover:text-gray-300 cursor-pointer'>
-            <div className='w-6 h-6 mx-2 flex-shrink-0'>
-              <img
-                src='https://avatars.githubusercontent.com/u/157560086?v=4'
-                alt='avatar'
-                className='w-full h-full object-cover rounded-full'
-              />
+          </Popover>
+          {!isAuthenticated && (
+            <div className='flex items-center'>
+              <Link to={path.register} className='mx-2 capitalize hover:text-white/70'>
+                Đăng ký
+              </Link>
+              <div className='border-r-[1px] border-white/100 h-4'></div>
+              <Link to={path.login} className='mx-2 capitalize hover:text-white/70'>
+                Đăng nhập
+              </Link>
             </div>
-            <span>Nhat Tri</span>
-          </div>
+          )}
+          {isAuthenticated && (
+            <Popover
+              className='flex items-center py-1 hover:text-white/70 cursor-pointer'
+              renderPopover={
+                <div className='flex flex-col shawdow-md items-center border-gray-200 relative bg-white text-black border rounded-sm'>
+                  <Link to={path.profile} className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
+                    Tài khoản của tôi
+                  </Link>
+                  <Link to='/' className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
+                    Đơn mua
+                  </Link>
+                  <button onClick={submitLogout} className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
+                    Đăng xuất
+                  </button>
+                </div>
+              }
+            >
+              <div className='w-6 h-6 mx-2 flex-shrink-0'>
+                <img
+                  src='https://avatars.githubusercontent.com/u/157560086?v=4'
+                  alt='avatar'
+                  className='w-full h-full object-cover rounded-full'
+                />
+              </div>
+              <span>{profile?.email}</span>
+            </Popover>
+          )}
         </div>
         <div className='grid grid-cols-12 gap-4 mt-4 items-end'>
           <Link to='/' className='col-span-2'>
@@ -60,7 +116,88 @@ export default function Header() {
               </button>
             </div>
           </form>
-          <div className='col-span-1'>
+
+          <Popover
+            placement='bottom-start'
+            className='col-span-1 justify-self-start'
+            renderPopover={
+              <div className='bg-white relative shadow-md rounded-sm border border-gray-200 max-w-[400px] text-sm'>
+                <div className='p-2'>
+                  <div className='text-gray-500 capitalize'>Sản phẩm mới thêm</div>
+                  <div className='mt-5'>
+                    <div className='mt-4 flex'>
+                      <div className='flex-shrink-0'>
+                        <img
+                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
+                          alt='anh'
+                          className='w-11 h-11 object-cover'
+                        />
+                      </div>
+                      <div className='ml-2 flex-grow overflow-hidden'>
+                        <div className='truncate'>
+                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
+                        </div>
+                      </div>
+                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
+                    </div>
+                    <div className='mt-4 flex'>
+                      <div className='flex-shrink-0'>
+                        <img
+                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
+                          alt='anh'
+                          className='w-11 h-11 object-cover'
+                        />
+                      </div>
+                      <div className='ml-2 flex-grow overflow-hidden'>
+                        <div className='truncate'>
+                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
+                        </div>
+                      </div>
+                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
+                    </div>
+                    <div className='mt-4 flex'>
+                      <div className='flex-shrink-0'>
+                        <img
+                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
+                          alt='anh'
+                          className='w-11 h-11 object-cover'
+                        />
+                      </div>
+                      <div className='ml-2 flex-grow overflow-hidden'>
+                        <div className='truncate'>
+                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
+                        </div>
+                      </div>
+                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
+                    </div>
+                    <div className='mt-4 flex'>
+                      <div className='flex-shrink-0'>
+                        <img
+                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
+                          alt='anh'
+                          className='w-11 h-11 object-cover'
+                        />
+                      </div>
+                      <div className='ml-2 flex-grow overflow-hidden'>
+                        <div className='truncate'>
+                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
+                        </div>
+                      </div>
+                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
+                    </div>
+                  </div>
+                  <div className='mt-5'>
+                    <div className='flex justify-between pb-2'>
+                      <span className='text-gray-600 text-xs capitalize'>Thêm hàng vào giỏ</span>
+                      <button className='bg-orange rounded shadow-sm px-3 py-2 text-white capitalize hover:bg-opacity-90'>
+                        Xem giỏ hàng
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          >
             <Link to='/'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -71,7 +208,7 @@ export default function Header() {
                 <path d='M2.25 2.25a.75.75 0 0 0 0 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 0 0-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5 15h11.218a.75.75 0 0 0 .674-.421 60.358 60.358 0 0 0 2.96-7.228.75.75 0 0 0-.525-.965A60.864 60.864 0 0 0 5.68 4.509l-.232-.867A1.875 1.875 0 0 0 3.636 2.25H2.25ZM3.75 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM16.5 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z' />
               </svg>
             </Link>
-          </div>
+          </Popover>
         </div>
       </div>
     </div>
