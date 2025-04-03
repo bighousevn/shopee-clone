@@ -1,11 +1,24 @@
-import { Link } from 'react-router-dom'
-import Popover from '../Popover'
+import { createSearchParams, Link, useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
+import { useForm } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
-import { useContext } from 'react'
+import Popover from '../Popover'
 import { AppContext } from 'src/contexts/app.context'
 import path from 'src/constants/path'
+import useQueryConfig, { QueryConfig } from 'src/hooks/useQueryConfig'
+import { omit } from 'lodash'
+import { schema, Schema } from 'src/utils/rules'
+import { yupResolver } from '@hookform/resolvers/yup'
+
+type FormData = Pick<Schema, 'name'>
+const nameSchema = schema.pick(['name'])
 export default function Header() {
+  const queryConfig: QueryConfig = useQueryConfig()
+  const { register, handleSubmit } = useForm<FormData>({
+    defaultValues: { name: '' },
+    resolver: yupResolver(nameSchema)
+  })
   const { setIsAuthenticated, isAuthenticated, profile, setProfile } = useContext(AppContext)
   const logoutMutate = useMutation({
     mutationFn: () => authApi.logoutAccount(),
@@ -15,6 +28,25 @@ export default function Header() {
     }
   })
 
+  const navigate = useNavigate()
+  const onSubmit = handleSubmit((data) => {
+    const config = queryConfig.order
+      ? omit(
+          {
+            ...queryConfig,
+            name: data.name
+          },
+          ['order', 'sort_by']
+        )
+      : {
+          ...queryConfig,
+          name: data.name
+        }
+    navigate({
+      pathname: path.home,
+      search: createSearchParams(config).toString()
+    })
+  })
   const submitLogout = () => {
     logoutMutate.mutate()
   }
@@ -98,12 +130,13 @@ export default function Header() {
               </g>
             </svg>
           </Link>
-          <form className='col-span-9 my-1'>
+          <form className='col-span-9 my-1' onSubmit={onSubmit}>
             <div className='flex bg-white'>
               <input
                 type='text'
                 placeholder='Mua sam nao'
                 className=' flex-grow text-black border-none outline-none py-3 px-1 rounded-sm'
+                {...register('name')}
               />
               <button className='bg-orange my-1 mr-1 px-6 flex-shrink-0'>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='size-6'>

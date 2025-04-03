@@ -1,4 +1,4 @@
-import { AuthResponse } from 'src/type/auth.type'
+import { AuthResponse } from 'src/types/auth.type'
 import http from 'src/utils/http'
 
 const URL_REGISTER = 'register'
