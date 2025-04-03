@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { omit } from 'lodash'
 
 import Input from 'src/components/Input'
-import { schema } from 'src/utils/rules'
+import { Schema, schema } from 'src/utils/rules'
 import authApi from 'src/apis/auth.api'
 import { isAxiosUnprocessableEntityError } from 'src/utils/utils'
 import { ErrorResponse } from 'src/type/util.type'
@@ -13,11 +13,8 @@ import { useContext } from 'react'
 import { AppContext } from 'src/contexts/app.context'
 import Button from 'src/components/Button'
 
-interface FormData {
-  email: string
-  password: string
-  confirm_password: string
-}
+type FormData = Pick<Schema, 'email' | 'password' | 'confirm_password'>
+const registerSchema = schema.pick(['email', 'password', 'confirm_password'])
 export default function Register() {
   const {
     register,
@@ -25,7 +22,7 @@ export default function Register() {
     setError,
     formState: { errors }
   } = useForm<FormData>({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(registerSchema)
   })
 
   const { setIsAuthenticated, setProfile } = useContext(AppContext)

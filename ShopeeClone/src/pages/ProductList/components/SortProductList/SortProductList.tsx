@@ -119,7 +119,7 @@ export default function SortProductList({ queryConfig, pageSize }: Props) {
                 pathname: path.home,
                 search: createSearchParams({ ...queryConfig, page: (page - 1).toString() }).toString()
               }}
-              className='flex items-center justify-center size-8 cursor-not-allowed  rounded-tl-sm rounded-bl-sm bg-white/60  shadow hover:bg-slate-100'
+              className='flex items-center justify-center size-8  rounded-tl-sm rounded-bl-sm bg-white/60  shadow hover:bg-slate-100'
             >
               <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor' className='size-4'>
                 <path
@@ -146,7 +146,7 @@ export default function SortProductList({ queryConfig, pageSize }: Props) {
                 pathname: path.home,
                 search: createSearchParams({ ...queryConfig, page: (page + 1).toString() }).toString()
               }}
-              className='flex items-center justify-center size-8 cursor-not-allowed  rounded-tl-sm rounded-bl-sm bg-white/60  shadow hover:bg-slate-100'
+              className='flex items-center justify-center size-8  rounded-tl-sm rounded-bl-sm bg-white/60  shadow hover:bg-slate-100'
             >
               <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor' className='size-4'>
                 <path

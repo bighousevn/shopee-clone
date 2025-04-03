@@ -29,7 +29,7 @@ class Http {
       (response) => {
         const { url } = response.config
         console.log(url)
-        if (url === 'login' || url === '/register') {
+        if (url === 'login' || url === 'register') {
           this.accessToken = response.data.data.access_token
           saveAccessTokenToLS(this.accessToken)
           const user = response.data.data.user
