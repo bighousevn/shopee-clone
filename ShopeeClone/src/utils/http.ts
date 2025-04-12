@@ -35,7 +35,7 @@ class Http {
           const user = response.data.data.user
 
           saveProfileToLS(user)
-        } else if (url === '/logout') {
+        } else if (url === 'logout') {
           this.accessToken = ''
           clearLocalStorage()
         }

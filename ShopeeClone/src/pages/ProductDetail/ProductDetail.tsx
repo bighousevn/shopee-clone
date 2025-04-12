@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import DOMPurify from 'dompurify'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -8,6 +8,10 @@ import { Product as ProductType, ProductListConfig } from 'src/types/product.typ
 import { formatCurrency, formateNumberToSocialStyle, getIdFromNameId, rateSale } from 'src/utils/utils'
 import Product from '../ProductList/components/Product'
 import QuantityController from 'src/components/QuantityController'
+import purchaseApi from 'src/apis/purchase.api'
+import { toast } from 'react-toastify'
+import { purchasesStatus } from 'src/constants/purchase'
+import { queryClient } from 'src/main'
 
 export default function ProductDetail() {
   const { nameId } = useParams()
@@ -60,10 +64,10 @@ export default function ProductDetail() {
     const offsetX = event.pageX - (rect.x + window.scrollX)
     const offsetY = event.pageY - (rect.y + window.scrollY)
 
-    const top = offsetY * (1 - naturalHeight / rect.height)
-    const left = offsetX * (1 - naturalWidth / rect.width)
-    image.style.width = naturalWidth + 'px'
-    image.style.height = naturalHeight + 'px'
+    const top = offsetY * (1 - (naturalHeight + 1000) / rect.height)
+    const left = offsetX * (1 - (naturalWidth + 1000) / rect.width)
+    image.style.width = naturalWidth + 500 + 'px'
+    image.style.height = naturalHeight + 500 + 'px'
     image.style.maxWidth = 'unset'
     image.style.top = top + 'px'
     image.style.left = left + 'px'
@@ -86,7 +90,18 @@ export default function ProductDetail() {
   const handleBuyCount = (value: number) => {
     setBuyCount(value)
   }
+  const addToCartMutation = useMutation({
+    mutationFn: (body: { product_id: string; buy_count: number }) => purchaseApi.addToCart(body),
 
+    onSuccess: (data) => {
+      toast.success(data.data.message, { autoClose: 1000 })
+      queryClient.invalidateQueries({ queryKey: ['purchases', { status: purchasesStatus.inCart }] })
+    }
+  })
+
+  const addToCart = () => {
+    addToCartMutation.mutate({ buy_count: buyCount, product_id: product?._id as string })
+  }
   if (!product) return null
   return (
     <div className='bg-gray-200 py-6'>
@@ -183,12 +198,15 @@ export default function ProductDetail() {
                   onType={handleBuyCount}
                   onIncrease={handleBuyCount}
                   onDecrease={handleBuyCount}
-                  value={buyCount}
+                  // value={1}
                 />
                 <div className='ml-6 text-sm text-gray-500'>{product.quantity} sản phẩm có sẵn</div>
               </div>
               <div className='mt-8 flex items-center'>
-                <button className='flex h-12 items-center justify-center rounded-sm border border-orange bg-orange/10 px-5 capitalize text-orange shadow-sm hover:bg-orange/5'>
+                <button
+                  onClick={addToCart}
+                  className='flex h-12 items-center justify-center rounded-sm border border-orange bg-orange/10 px-5 capitalize text-orange shadow-sm hover:bg-orange/5'
+                >
                   <svg
                     enableBackground='new 0 0 15 15'
                     viewBox='0 0 15 15'

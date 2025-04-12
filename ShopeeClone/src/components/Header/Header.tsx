@@ -1,7 +1,7 @@
 import { createSearchParams, Link, useNavigate } from 'react-router-dom'
 import { useContext } from 'react'
 import { useForm } from 'react-hook-form'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import authApi from 'src/apis/auth.api'
 import Popover from '../Popover'
 import { AppContext } from 'src/contexts/app.context'
@@ -10,21 +10,30 @@ import useQueryConfig, { QueryConfig } from 'src/hooks/useQueryConfig'
 import { omit } from 'lodash'
 import { schema, Schema } from 'src/utils/rules'
 import { yupResolver } from '@hookform/resolvers/yup'
+import purchaseApi from 'src/apis/purchase.api'
+import { purchasesStatus } from 'src/constants/purchase'
+import { formatCurrency } from 'src/utils/utils'
+import noproduct from 'src/assets/images/no-product.png'
+import { queryClient } from 'src/main'
 
 type FormData = Pick<Schema, 'name'>
 const nameSchema = schema.pick(['name'])
+const MAX_PURCHASES = 5
+
 export default function Header() {
   const queryConfig: QueryConfig = useQueryConfig()
   const { register, handleSubmit } = useForm<FormData>({
     defaultValues: { name: '' },
     resolver: yupResolver(nameSchema)
   })
+
   const { setIsAuthenticated, isAuthenticated, profile, setProfile } = useContext(AppContext)
   const logoutMutate = useMutation({
     mutationFn: () => authApi.logoutAccount(),
     onSuccess: () => {
       setIsAuthenticated(false)
       setProfile(null)
+      queryClient.removeQueries({ queryKey: ['purchases', { status: purchasesStatus.inCart }] })
     }
   })
 
@@ -50,6 +59,14 @@ export default function Header() {
   const submitLogout = () => {
     logoutMutate.mutate()
   }
+
+  const { data: purchasesInCartData } = useQuery({
+    queryKey: ['purchases', { status: purchasesStatus.inCart }],
+    queryFn: () => purchaseApi.getPurchases({ status: purchasesStatus.inCart }),
+    enabled: isAuthenticated
+  })
+
+  const purchasesInCart = purchasesInCartData?.data.data
 
   return (
     <div className='bg-[linear-gradient(-180deg,#f53d2d,#f63)] pb-5 pt-2 text-white'>
@@ -102,10 +119,16 @@ export default function Header() {
                   <Link to={path.profile} className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
                     Tài khoản của tôi
                   </Link>
-                  <Link to='/' className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
+                  <Link
+                    to='/'
+                    className='py-2 px-3 hover:bg-slate-100 flex justify-center w-full bg-white hover:text-cyan-500'
+                  >
                     Đơn mua
                   </Link>
-                  <button onClick={submitLogout} className='py-2 px-3 hover:bg-slate-100 bg-white hover:text-cyan-500'>
+                  <button
+                    onClick={submitLogout}
+                    className='py-2 px-3 hover:bg-slate-100 w-full flex justify-center bg-white hover:text-cyan-500'
+                  >
                     Đăng xuất
                   </button>
                 </div>
@@ -155,91 +178,67 @@ export default function Header() {
             className='col-span-1 justify-self-start'
             renderPopover={
               <div className='bg-white relative shadow-md rounded-sm border border-gray-200 max-w-[400px] text-sm'>
-                <div className='p-2'>
-                  <div className='text-gray-500 capitalize'>Sản phẩm mới thêm</div>
-                  <div className='mt-5'>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
-                          alt='anh'
-                          className='w-11 h-11 object-cover'
-                        />
-                      </div>
-                      <div className='ml-2 flex-grow overflow-hidden'>
-                        <div className='truncate'>
-                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
+                {purchasesInCart ? (
+                  <div className='p-2'>
+                    <div className='capitalize text-gray-400'>Sản phẩm mới thêm</div>
+                    <div className='mt-5'>
+                      {purchasesInCart.slice(0, MAX_PURCHASES).map((purchase) => (
+                        <div className='mt-2 flex py-2 hover:bg-gray-100' key={purchase._id}>
+                          <div className='flex-shrink-0'>
+                            <img
+                              src={purchase.product.image}
+                              alt={purchase.product.name}
+                              className='h-11 w-11 object-cover'
+                            />
+                          </div>
+                          <div className='ml-2 flex-grow overflow-hidden'>
+                            <div className='truncate'>{purchase.product.name}</div>
+                          </div>
+                          <div className='ml-2 flex-shrink-0'>
+                            <span className='text-orange'>₫{formatCurrency(purchase.product.price)}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
+                      ))}
                     </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
-                          alt='anh'
-                          className='w-11 h-11 object-cover'
-                        />
+                    <div className='mt-6 flex items-center justify-between'>
+                      <div className='text-xs capitalize text-gray-500'>
+                        {purchasesInCart.length > MAX_PURCHASES ? purchasesInCart.length - MAX_PURCHASES : ''} Thêm hàng
+                        vào giỏ
                       </div>
-                      <div className='ml-2 flex-grow overflow-hidden'>
-                        <div className='truncate'>
-                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
-                        </div>
-                      </div>
-                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
-                    </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
-                          alt='anh'
-                          className='w-11 h-11 object-cover'
-                        />
-                      </div>
-                      <div className='ml-2 flex-grow overflow-hidden'>
-                        <div className='truncate'>
-                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
-                        </div>
-                      </div>
-                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
-                    </div>
-                    <div className='mt-4 flex'>
-                      <div className='flex-shrink-0'>
-                        <img
-                          src='https://avatars.githubusercontent.com/u/157560086?v=4'
-                          alt='anh'
-                          className='w-11 h-11 object-cover'
-                        />
-                      </div>
-                      <div className='ml-2 flex-grow overflow-hidden'>
-                        <div className='truncate'>
-                          [LIFEMCMBP2 -12% đơn 250K] Bộ Nồi Inox 3 Đáy SUNHOUSE SH334 16, 20, 24 cm
-                        </div>
-                      </div>
-                      <div className='text-orange ml-4 mr-2 capitalize text-lg'>₫469.000</div>
-                    </div>
-                  </div>
-                  <div className='mt-5'>
-                    <div className='flex justify-between pb-2'>
-                      <span className='text-gray-600 text-xs capitalize'>Thêm hàng vào giỏ</span>
-                      <button className='bg-orange rounded shadow-sm px-3 py-2 text-white capitalize hover:bg-opacity-90'>
+                      <Link
+                        to={path.cart}
+                        className='rounded-sm bg-orange px-4 py-2 capitalize text-white hover:bg-opacity-90'
+                      >
                         Xem giỏ hàng
-                      </button>
+                      </Link>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className='flex h-[300px] w-[300px] items-center justify-center flex-col p-2'>
+                    <img src={noproduct} alt='no purchase' className='h-24 w-24' />
+                    <div className='mt-3 capitalize'>Chưa có sản phẩm</div>
+                  </div>
+                )}
               </div>
             }
           >
-            <Link to='/'>
+            <Link to={path.cart} className='relative '>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 viewBox='0 0 24 24'
-                fill='currentColor'
-                className='size-6 mb-1 w-8  h-8'
+                fill='none'
+                strokeWidth={1.5}
+                stroke='currentColor'
+                className='size-1 mb-1 w-8  h-8'
               >
-                <path d='M2.25 2.25a.75.75 0 0 0 0 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 0 0-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 0 0 0-1.5H5.378A2.25 2.25 0 0 1 7.5 15h11.218a.75.75 0 0 0 .674-.421 60.358 60.358 0 0 0 2.96-7.228.75.75 0 0 0-.525-.965A60.864 60.864 0 0 0 5.68 4.509l-.232-.867A1.875 1.875 0 0 0 3.636 2.25H2.25ZM3.75 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM16.5 20.25a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z' />
+                <path d='M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z' />
               </svg>
+
+              {purchasesInCart && (
+                <span className='absolute top-[-5px] left-[17px] rounded-full bg-white px-[9px] py-[1px] text-xs text-orange '>
+                  {purchasesInCart?.length}
+                </span>
+              )}
             </Link>
           </Popover>
         </div>

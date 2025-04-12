@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import InputNumber, { InputNumberProps } from '../InputNumber'
 
 interface Props extends InputNumberProps {
@@ -5,43 +6,64 @@ interface Props extends InputNumberProps {
   onIncrease?: (value: number) => void
   onDecrease?: (value: number) => void
   onType?: (value: number) => void
+  onFocusOut?: (value: number) => void
   classNameWrapper?: string
 }
+
 export default function QuantityController({
   max,
   onIncrease,
   onDecrease,
   onType,
+  onFocusOut,
   classNameWrapper = 'ml-10',
-  value,
+  value = '0',
   ...rest
 }: Props) {
+  const [localValue, setLocalValue] = useState<number>(Number(value))
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    let value2 = Number(event.target.value)
-    if (max && value2 > max) value2 = max
-    else if (value2 < 1) value2 = 1
-
-    if (onType) onType(value2)
+    let _value = Number(event.target.value)
+    if (max !== undefined && _value > max) {
+      _value = max
+    } else if (_value < 1) {
+      _value = 1
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    onType && onType(_value)
+    setLocalValue(_value)
   }
 
-  const handleIncrease = () => {
-    let value2 = Number(value) + 1
-    if (max && value2 > max) value2 = max
-
-    if (onIncrease) onIncrease(value2)
+  const increase = () => {
+    let _value = Number(localValue) + 1
+    console.log(value)
+    if (max !== undefined && _value > max) {
+      _value = max
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    onIncrease && onIncrease(_value)
+    setLocalValue(_value)
   }
 
-  const handleDecrease = () => {
-    let value2 = Number(value) - 1
-    if (value2 < 1) value2 = 1
-
-    if (onDecrease) onDecrease(value2)
+  const decrease = () => {
+    let _value = Number(localValue) - 1
+    if (_value < 1) {
+      _value = 1
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    onDecrease && onDecrease(_value)
+    setLocalValue(_value)
   }
+
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement, Element>) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    onFocusOut && onFocusOut(Number(event.target.value))
+  }
+
   return (
-    <div className={'flex items-center' + classNameWrapper}>
+    <div className={'flex items-center ' + classNameWrapper}>
       <button
         className='flex h-8 w-8 items-center justify-center rounded-l-sm border border-gray-300 text-gray-600'
-        onClick={handleDecrease}
+        onClick={decrease}
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -55,16 +77,17 @@ export default function QuantityController({
         </svg>
       </button>
       <InputNumber
-        value={value}
         className=''
-        classNameError='hidden '
+        classNameError='hidden'
         classNameInput='h-8 w-14 border-t border-b border-gray-300 p-1 text-center outline-none'
         onChange={handleChange}
+        onBlur={handleBlur}
+        value={localValue}
         {...rest}
       />
       <button
         className='flex h-8 w-8 items-center justify-center rounded-r-sm border border-gray-300 text-gray-600'
-        onClick={handleIncrease}
+        onClick={increase}
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
