@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import DOMPurify from 'dompurify'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import productApi from 'src/apis/product.api'
 import ProductRating from 'src/components/ProductRating'
 import { Product as ProductType, ProductListConfig } from 'src/types/product.type'
@@ -12,6 +12,7 @@ import purchaseApi from 'src/apis/purchase.api'
 import { toast } from 'react-toastify'
 import { purchasesStatus } from 'src/constants/purchase'
 import { queryClient } from 'src/main'
+import path from 'src/constants/path'
 
 export default function ProductDetail() {
   const { nameId } = useParams()
@@ -85,6 +86,7 @@ export default function ProductDetail() {
     enabled: Boolean(product)
   })
 
+  const navigate = useNavigate()
   const [buyCount, setBuyCount] = useState(1)
 
   const handleBuyCount = (value: number) => {
@@ -102,6 +104,17 @@ export default function ProductDetail() {
   const addToCart = () => {
     addToCartMutation.mutate({ buy_count: buyCount, product_id: product?._id as string })
   }
+
+  const buyNow = async () => {
+    const res = await addToCartMutation.mutateAsync({ buy_count: buyCount, product_id: product?._id as string })
+    const purchase = res.data.data
+    navigate(path.cart, {
+      state: {
+        purchaseId: purchase._id
+      }
+    })
+  }
+
   if (!product) return null
   return (
     <div className='bg-gray-200 py-6'>
@@ -232,7 +245,10 @@ export default function ProductDetail() {
                   </svg>
                   Thêm vào giỏ hàng
                 </button>
-                <button className='fkex ml-4 h-12 min-w-[5rem] items-center justify-center rounded-sm bg-orange px-5 capitalize text-white shadow-sm outline-none hover:bg-orange/90'>
+                <button
+                  onClick={buyNow}
+                  className='fkex ml-4 h-12 min-w-[5rem] items-center justify-center rounded-sm bg-orange px-5 capitalize text-white shadow-sm outline-none hover:bg-orange/90'
+                >
                   Mua ngay
                 </button>
               </div>

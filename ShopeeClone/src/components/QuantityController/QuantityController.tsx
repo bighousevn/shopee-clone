@@ -17,10 +17,11 @@ export default function QuantityController({
   onType,
   onFocusOut,
   classNameWrapper = 'ml-10',
-  value = '0',
+  value = '1',
   ...rest
 }: Props) {
   const [localValue, setLocalValue] = useState<number>(Number(value))
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let _value = Number(event.target.value)
     if (max !== undefined && _value > max) {
@@ -35,7 +36,6 @@ export default function QuantityController({
 
   const increase = () => {
     let _value = Number(localValue) + 1
-    console.log(value)
     if (max !== undefined && _value > max) {
       _value = max
     }
