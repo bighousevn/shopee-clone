@@ -50,6 +50,11 @@ class Http {
           toast.error(message)
         }
 
+        if (error.response?.status === HttpStatusCode.Unauthorized) {
+          clearLocalStorage()
+          // window.location.reload()
+        }
+
         return Promise.reject(error)
       }
     )

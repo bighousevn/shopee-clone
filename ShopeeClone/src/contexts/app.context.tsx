@@ -10,6 +10,7 @@ interface AppContextInterface {
   setProfile: React.Dispatch<React.SetStateAction<User | null>>
   extendedPurchases: ExtendedPurchase[]
   setExtendedPurchases: React.Dispatch<React.SetStateAction<ExtendedPurchase[]>>
+  reset: () => void
 }
 const initialAppContext: AppContextInterface = {
   isAuthenticated: Boolean(getAccessTokenFromLS()),
@@ -17,14 +18,23 @@ const initialAppContext: AppContextInterface = {
   profile: getProfileFromLS(),
   setProfile: () => null,
   extendedPurchases: [],
-  setExtendedPurchases: () => null
+  setExtendedPurchases: () => null,
+  reset: () => null
 }
+// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext<AppContextInterface>(initialAppContext)
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAppContext.isAuthenticated)
   const [extendedPurchases, setExtendedPurchases] = useState<ExtendedPurchase[]>(initialAppContext.extendedPurchases)
   const [profile, setProfile] = useState<User | null>(initialAppContext.profile)
+
+  const reset = () => {
+    setIsAuthenticated(initialAppContext.isAuthenticated)
+    setProfile(initialAppContext.profile)
+    setExtendedPurchases(initialAppContext.extendedPurchases)
+  }
+
   const contextValue = useMemo(
     () => ({
       isAuthenticated,
@@ -32,7 +42,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       profile,
       setProfile,
       extendedPurchases,
-      setExtendedPurchases
+      setExtendedPurchases,
+      reset
     }),
     [extendedPurchases, isAuthenticated, profile]
   )
