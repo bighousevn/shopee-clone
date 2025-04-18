@@ -91,6 +91,7 @@ export default function Register() {
                 name='password'
                 className='mt-3'
                 //rules={rules.password}
+                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
                 register={register}
                 autoComplete='on'
               />
@@ -102,6 +103,7 @@ export default function Register() {
                 name='confirm_password'
                 className='mt-3'
                 // rules={rules.confirm_password}
+                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
                 register={register}
                 autoComplete='on'
               />

@@ -77,6 +77,7 @@ export default function Login() {
                 errorMessage={errors.password?.message}
                 placeholder='password'
                 name='password'
+                classNameEye='absolute right-[5px] h-5 w-5 cursor-pointer top-[12px]'
                 className='mt-3'
                 register={register}
                 autoComplete='on'

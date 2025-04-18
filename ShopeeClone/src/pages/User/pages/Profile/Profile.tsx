@@ -96,6 +96,8 @@ export default function Profile() {
         const formError = error.response?.data.data
         if (formError) {
           Object.keys(formError).forEach((key) => {
+            const errorMessage = formError[key as keyof FormDataError]
+            console.log(errorMessage)
             setError(key as keyof FormDataError, {
               message: formError[key as keyof FormDataError],
               type: 'Server'
@@ -106,8 +108,7 @@ export default function Profile() {
     }
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const value = watch()
+  // const value = watch()
 
   // console.log(value, errors)
 

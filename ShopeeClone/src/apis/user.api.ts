@@ -4,7 +4,7 @@ import http from 'src/utils/http'
 
 interface BodyUpdateProfile extends Omit<User, '_id' | 'roles' | 'createdAt' | 'updatedAt' | 'email'> {
   password?: string
-  newPassword?: string
+  new_password?: string
 }
 
 export const userApi = {
@@ -12,6 +12,7 @@ export const userApi = {
     return http.get<SuccessResponse<User>>('me')
   },
   updateProfile(body: BodyUpdateProfile) {
+    console.log(body)
     return http.put<SuccessResponse<User>>('user', body)
   },
   uploadAvatar(body: FormData) {
