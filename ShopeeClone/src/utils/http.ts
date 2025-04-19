@@ -6,24 +6,25 @@ import {
   getAccessTokenFromLS,
   getRefreshTokenFromLS,
   saveAccessTokenToLS,
-  saveProfileToLS
+  saveProfileToLS,
+  saveRefreshTokenToLS
 } from './auth'
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from 'src/types/utils.type'
-import { RefreshTokenReponse } from 'src/types/auth.type'
-import console from 'console'
+import { RefreshTokenResponse } from 'src/types/auth.type'
+import config from 'src/constants/config'
 
 class Http {
   instance: AxiosInstance
   private accessToken: string
-  private refreshToken: string
+  public refreshToken: string
   private refreshTokenRequest: Promise<string> | null
   constructor() {
     this.accessToken = getAccessTokenFromLS() || ''
     this.refreshToken = getRefreshTokenFromLS() || ''
     this.refreshTokenRequest = null
     this.instance = axios.create({
-      baseURL: 'https://api-ecom.duthanhduoc.com/',
+      baseURL: config.baseUrl,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -36,6 +37,7 @@ class Http {
         if (this.accessToken && config.headers) {
           config.headers.authorization = this.accessToken
         }
+        console.log(111111)
         return config
       },
       (error) => {
@@ -46,12 +48,13 @@ class Http {
     this.instance.interceptors.response.use(
       (response) => {
         const { url } = response.config
-        console.log(url)
-        // console.log(response)
+        // console.log(url)
+        console.log(response)
         if (url === 'login' || url === 'register') {
           this.accessToken = response.data.data.access_token
-          this.refreshToken = response.data.refresh_token
+          this.refreshToken = response.data.data.refresh_token
           saveAccessTokenToLS(this.accessToken)
+          saveRefreshTokenToLS(this.refreshToken)
           const user = response.data.data.user
 
           saveProfileToLS(user)
@@ -62,17 +65,19 @@ class Http {
         return response
       },
       (error: AxiosError) => {
-        if (error.response?.status !== HttpStatusCode.UnprocessableEntity) {
+        if (
+          ![HttpStatusCode.Unauthorized, HttpStatusCode.UnprocessableEntity].includes(error.response?.status as number)
+        ) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const data: any | undefined = error.response?.data
           const message = data?.message || error.message
           console.log(message)
           toast.error(message)
         }
-
         if (isAxiosUnauthorizedError<ErrorResponse<{ name: string; message: string }>>(error)) {
-          const config = error.response?.config
-          const url = config?.url ?? ''
+          const config = error.response?.config || {}
+          const { url } = config
+
           if (isAxiosExpiredTokenError(error) && url !== 'refresh-access-token') {
             this.refreshTokenRequest = this.refreshTokenRequest
               ? this.refreshTokenRequest
@@ -87,7 +92,7 @@ class Http {
               return this.instance({
                 ...config,
                 headers: {
-                  ...config?.headers,
+                  ...config.headers,
                   authorization: access_token
                 }
               })
@@ -108,7 +113,7 @@ class Http {
 
   private handleRefreshToken() {
     return this.instance
-      .post<RefreshTokenReponse>('refresh-access-token', {
+      .post<RefreshTokenResponse>('refresh-access-token', {
         refresh_token: this.refreshToken
       })
       .then((res) => {

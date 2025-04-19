@@ -10,11 +10,11 @@ export const saveRefreshTokenToLS = (refresh_token: string) => {
 }
 
 export const getAccessTokenFromLS = () => {
-  return localStorage.getItem('access_token')
+  return localStorage.getItem('access_token') || ''
 }
 
 export const getRefreshTokenFromLS = () => {
-  return localStorage.getItem('refresh_token')
+  return localStorage.getItem('refresh_token') || ''
 }
 
 export const clearLocalStorage = () => {

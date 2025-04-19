@@ -10,6 +10,7 @@ import { getAvatarUrl } from 'src/utils/utils'
 
 export default function NavHeader() {
   const { setIsAuthenticated, isAuthenticated, setProfile, profile } = useContext(AppContext)
+  console.log(profile)
   const queryClient = useQueryClient()
   const logoutMutation = useMutation({
     mutationFn: authApi.logoutAccount,
