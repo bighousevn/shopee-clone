@@ -37,7 +37,6 @@ class Http {
         if (this.accessToken && config.headers) {
           config.headers.authorization = this.accessToken
         }
-        console.log(111111)
         return config
       },
       (error) => {
@@ -75,7 +74,7 @@ class Http {
           toast.error(message)
         }
         if (isAxiosUnauthorizedError<ErrorResponse<{ name: string; message: string }>>(error)) {
-          const config = error.response?.config || {}
+          const config = error.response?.config || { url: '', headers: {} }
           const { url } = config
 
           if (isAxiosExpiredTokenError(error) && url !== 'refresh-access-token') {
